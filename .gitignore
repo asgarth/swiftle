@@ -1,6 +1,7 @@
+# files #
 *.class
 
-# Package Files #
-*.jar
-*.war
-*.ear
+# directories #
+/release
+/build
+/bin
