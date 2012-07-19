@@ -1,1 +1,1 @@
-A simple cross-platform file transfer client with support for multiple protocols and direct transfer between romote hosts.
+A simple cross-platform file transfer client with support for multiple protocols and direct transfer between remote hosts.
