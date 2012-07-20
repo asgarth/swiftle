@@ -131,6 +131,7 @@ public class LocalConnection extends AbstractConnection implements Connection {
 
 		// build result list
 		final List<Entry> list = new ArrayList<Entry>(files.length);
+		list.add(new DirectoryEntry("..", "."));
 		for (int i = 0; i < files.length; i++) {
 			final Entry entry;
 

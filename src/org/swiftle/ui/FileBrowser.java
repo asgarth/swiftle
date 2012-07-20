@@ -10,6 +10,8 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -35,12 +37,12 @@ import org.snow.util.cache.ImageCache;
 import org.snow.util.layout.GridDataBuilder;
 import org.snow.util.layout.TableColumnAdapter;
 import org.swiftle.ListSortAction;
-import org.swiftle.network.DirectoryEntry;
 import org.swiftle.network.Entry;
 import org.swiftle.network.SizeUnit;
 import org.swiftle.network.connection.Connection;
 import org.swiftle.network.connection.FTPConnection;
 import org.swiftle.network.connection.LocalConnection;
+import org.swiftle.network.connection.SFTPConnection;
 import org.swiftle.ui.dialog.ConnectionDialog;
 import org.swiftle.ui.util.IconUtils;
 
@@ -71,6 +73,13 @@ public class FileBrowser extends Composite {
 
 		/** init filesystem table */
 		table = buildFilesystemTable();
+		
+		addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent arg0) {
+				if (connection != null && connection.isConnected())
+					connection.disconnect();
+			}
+		});
 	}
 
 	public void connect(final Connection newConnection) {
@@ -81,11 +90,11 @@ public class FileBrowser extends Composite {
 
 		refresh(connection.pwd(), connection.list());
 	}
-
-	public void refresh() {
-		refresh(connection.pwd(), connection.list());
+	
+	public Connection getConnection() {
+		return connection;
 	}
-
+	
 	public void refresh(final String currentPath, final List<Entry> entries) {
 		/** clear old entries */
 		table.removeAll();
@@ -93,18 +102,12 @@ public class FileBrowser extends Composite {
 		/** refresh toolbar path */
 		toolBarPath.setText(currentPath);
 
-		/** add special items (previous directory) */
-		final DirectoryEntry prevEntry = new DirectoryEntry("..", currentPath);
-		final TableItem prev = new TableItem(table, SWT.NONE);
-		prev.setText(new String[] { prevEntry.getName(), "" });
-		prev.setImage(IconUtils.getIcon(prevEntry));
-
 		/** sort entries list */
 		new ListSortAction(entries, true).execute();
 
 		/** add files list */
 		currentEntryMap = new HashMap<String, Entry>();
-		currentEntryMap.put(prevEntry.getName(), prevEntry);
+		//currentEntryMap.put(prevEntry.getName(), prevEntry);
 		for (Entry entry : entries) {
 			currentEntryMap.put(entry.getName(), entry);
 
@@ -149,10 +152,6 @@ public class FileBrowser extends Composite {
 		item.setImage(IconUtils.getIcon(entry));
 
 		return true;
-	}
-
-	public Connection getConnection() {
-		return connection;
 	}
 
 	/** Init file table. */
@@ -220,10 +219,15 @@ public class FileBrowser extends Composite {
 						final ConnectionDialog dialog = new ConnectionDialog(getShell());
 						dialog.open();
 
-						if (isEmpty(dialog.getServer()))
+						if (isEmpty(dialog.getServer()) || dialog.getProtocol() == null)
 							return;
 
-						final Connection newConnection = new FTPConnection();
+						final Connection newConnection;
+						if (dialog.getProtocol() == ConnectionDialog.Protocol.SFTP)
+							newConnection = new SFTPConnection();
+						else
+							newConnection = new FTPConnection();
+
 						if( dialog.getPort() > 0 )
 							newConnection.connect(dialog.getServer(), dialog.getPort(), dialog.getUser(), dialog.getPwd());
 						else

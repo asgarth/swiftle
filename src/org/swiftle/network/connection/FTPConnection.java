@@ -64,7 +64,7 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	private boolean login(final String user, final String passwd) {
-		if (!client.isConnected())
+		if (! isConnected())
 			return false;
 
 		final String username = isEmpty(user) ? "anonymous" : user;
@@ -81,7 +81,7 @@ public class FTPConnection extends AbstractConnection implements Connection {
 			}
 
 			home = client.printWorkingDirectory();
-			client.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+			client.setFileType(FTP.BINARY_FILE_TYPE);
 
 		} catch (IOException e) {
 			logger.error("Login error on FTP server for user: " + user, e.getMessage());
@@ -91,7 +91,7 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	public boolean disconnect() {
-		if (!client.isConnected())
+		if (! isConnected())
 			return false;
 
 		try {
@@ -107,11 +107,11 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	public boolean isConnected() {
-		return client.isConnected();
+		return client != null && client.isConnected();
 	}
 
 	public String pwd() {
-		if (!client.isConnected())
+		if (! isConnected())
 			return null;
 
 		try {
@@ -125,7 +125,7 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	public boolean cd(final String path) {
-		if (!client.isConnected())
+		if (! isConnected())
 			return false;
 
 		try {
@@ -146,7 +146,7 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	public boolean mkdir(final String path) {
-		if (!client.isConnected())
+		if (! isConnected())
 			return false;
 
 		try {
@@ -160,7 +160,7 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	public boolean delete(final String file) {
-		if (!client.isConnected())
+		if (! isConnected())
 			return false;
 
 		try {
@@ -174,7 +174,7 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	public boolean rename(final String orig, final String dest) {
-		if (!client.isConnected())
+		if (! isConnected())
 			return false;
 
 		try {
@@ -189,9 +189,10 @@ public class FTPConnection extends AbstractConnection implements Connection {
 
 	public List<Entry> list() {
 		final List<Entry> list = new LinkedList<Entry>();
-		if (!client.isConnected())
+		if (! client.isConnected())
 			return list;
 
+		list.add(new DirectoryEntry("..", "."));
 		final String dir = pwd();
 		try {
 			final FTPFile[] fileList = client.listFiles();
@@ -210,16 +211,16 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	public InputStream getStream(final String remote) {
-		if (!client.isConnected())
+		if (! isConnected())
 			return null;
 
 		try {
 			final InputStream stream = client.retrieveFileStream(remote);
-			if (!FTPReply.isPositiveIntermediate(client.getReplyCode())) {
+			/*if (! FTPReply.isPositiveIntermediate(client.getReplyCode())) {
 				logger.error("Error retrieving input stream from FTP server (code " + client.getReplyCode() + ")");
 				stream.close();
 				return null;
-			}
+			}*/
 
 			return stream;
 
@@ -231,9 +232,12 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	public void closeGetStream(final InputStream stream) throws IOException {
+		if (stream == null)
+			return;
+
 		stream.close();
 
-		if (!client.completePendingCommand())
+		if (! client.completePendingCommand())
 			throw new FileTransferException("Error closing output stream after file trasfer");
 	}
 
@@ -243,7 +247,7 @@ public class FTPConnection extends AbstractConnection implements Connection {
 
 		try {
 			final OutputStream stream = client.storeFileStream(remote);
-			if (!FTPReply.isPositiveIntermediate(client.getReplyCode())) {
+			if (! FTPReply.isPositiveIntermediate(client.getReplyCode())) {
 				logger.error("Error creating output stream on FTP server (code " + client.getReplyCode() + ")");
 				stream.close();
 				return null;
@@ -259,9 +263,12 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	public void closePutStream(final OutputStream stream) throws IOException {
+		if (stream == null)
+			return;
+
 		stream.close();
 
-		if (!client.completePendingCommand())
+		if (! client.completePendingCommand())
 			throw new FileTransferException("Error closing output stream after file trasfer");
 	}
 
