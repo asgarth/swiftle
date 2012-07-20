@@ -18,7 +18,10 @@ import org.swiftle.network.FileEntry;
 
 public class FTPConnection extends AbstractConnection implements Connection {
 
+	public static final int DEFAULT_PORT = FTP.DEFAULT_PORT;
+	
 	public static final String PATH_SEPARATOR = "/";
+	
 	private final FTPClient client;
 
 	private String lastError;
@@ -33,7 +36,7 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	public boolean connect(final String host) {
-		return connect(host, FTP.DEFAULT_PORT);
+		return connect(host, DEFAULT_PORT);
 	}
 
 	public boolean connect(final String host, final int port) {
@@ -41,7 +44,7 @@ public class FTPConnection extends AbstractConnection implements Connection {
 	}
 
 	public boolean connect(final String host, final String user, final String password) {
-		return connect(host, FTP.DEFAULT_PORT, user, password);
+		return connect(host, DEFAULT_PORT, user, password);
 	}
 
 	public boolean connect(final String host, int port, final String user, final String password) {

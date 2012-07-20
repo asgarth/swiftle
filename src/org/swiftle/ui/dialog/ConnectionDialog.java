@@ -3,6 +3,8 @@ package org.swiftle.ui.dialog;
 import static org.swiftle.util.StringUtils.isEmpty;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -23,6 +25,8 @@ import org.snow.util.cache.ImageCache;
 import org.snow.util.layout.FormDataBuilder;
 import org.snow.window.ApplicationDialog;
 import org.snow.window.footer.StandardFooter;
+import org.swiftle.network.connection.FTPConnection;
+import org.swiftle.network.connection.SFTPConnection;
 
 public class ConnectionDialog extends ApplicationDialog {
 
@@ -119,7 +123,9 @@ public class ConnectionDialog extends ApplicationDialog {
 		final Label portLabel = new Label(connectionGroup, SWT.NONE);
 		portLabel.setText("Port:");
 		portLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER));
-		final Text portText = new Text(connectionGroup, SWT.BORDER | SWT.SINGLE);
+		final Text portText = new Text(connectionGroup, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
+		portText.setText("21");
+		portText.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
 		portText.addListener(SWT.Verify, new Listener() {
 			public void handleEvent(Event e) {
 				for (char c : e.text.toCharArray()) {
@@ -130,14 +136,26 @@ public class ConnectionDialog extends ApplicationDialog {
 				}
 			}
 		});
-		portText.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER));
+		final GridData portTextData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER);
+		portTextData.minimumWidth = 70;
+		portTextData.widthHint = 70;
+		portText.setLayoutData(portTextData);
 
+		table.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent event) {
+				if (Protocol.valueOf(table.getSelection()[0].getText()) == Protocol.SFTP)
+					portText.setText(Integer.toString(SFTPConnection.DEFAULT_PORT));
+				else
+					portText.setText(Integer.toString(FTPConnection.DEFAULT_PORT));
+			}
+		});
+		
 		final StandardFooter footer = new StandardFooter(this, "Connect", "Cancel");
 		footer.addOkAction(new Action() {
 			public boolean execute() {
 				protocol = Protocol.valueOf(table.getSelection()[0].getText());
 				server = serverText.getText();
-				port = isEmpty(portText.getText()) ? -1 : Integer.parseInt(portText.getText());
+				port = isEmpty(portText.getText().trim()) ? -1 : Integer.parseInt(portText.getText().trim());
 				user = userText.getText();
 				pwd = pwdText.getText();
 
@@ -146,7 +164,6 @@ public class ConnectionDialog extends ApplicationDialog {
 			}
 		});
 		setFooter(footer);
-
 	}
 
 	public Protocol getProtocol() {
