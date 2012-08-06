@@ -1,0 +1,51 @@
+<project name="swiftle" default="jar" basedir=".">
+
+	<property name="jarname" 		value="swiftle" />
+	<property name="version" 		value="0.1" />
+	<property name="mainclass"     	value="org.swiftle.Swiftle" />
+
+	<property name="src" 			location="src" />
+	<property name="lib" 			location="lib" />
+	<property name="resources"      location="resources" />
+	<property name="build.classes" 	location="build/classes" />
+	
+	<path id="lib.classpath">
+		<fileset dir="${lib}" includes="**/*.jar" />
+	</path>
+
+	<pathconvert property="libs.manifest" refid="lib.classpath" pathsep=" " dirsep="/">
+		<map from="${lib}" to="lib"/>
+	</pathconvert>
+
+	<target name="compile">
+		<mkdir dir="${build.classes}" />
+		<javac destdir="${build.classes}" classpathref="lib.classpath" debug="true">
+			<src path="${src}" />
+		</javac>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="${jarname}.jar">
+			<fileset dir="${build.classes}">
+				<include name="org/**/*.class" />
+				<exclude name="example/**/*.class" />
+			</fileset>
+			
+			<fileset dir="." includes="resources/**/*" />
+			
+			<manifest>
+				<attribute name="Main-Class" value="${mainclass}"/>
+				<attribute name="Class-Path" value="${libs.manifest}" />
+				<attribute name="Specification-Version" value="${version}"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build.classes}" />
+		<delete file="${jarname}.jar"/>
+	</target>
+
+	<target name="all" depends="clean, compile, jar" />
+
+</project>

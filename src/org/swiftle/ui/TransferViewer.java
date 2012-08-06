@@ -39,6 +39,8 @@ public class TransferViewer extends Composite {
 
 	private final ImageCache cache;
 
+	private final Map<TransferData, TableItem> transferMap;
+	
 	private final Map<TableItem, TableEditor> editorMap;
 
 	private final ToolBar sideBar;
@@ -50,10 +52,11 @@ public class TransferViewer extends Composite {
 
 		manager = TransferManager.getInstance();
 
-		cache = ImageCache.getInstance();
+		transferMap = new HashMap<TransferData, TableItem>();
 		editorMap = new HashMap<TableItem, TableEditor>();
 
 		/** init UI */
+		cache = ImageCache.getInstance();
 		setLayout(new FormLayout());
 
 		/** init sidebar */
@@ -69,23 +72,30 @@ public class TransferViewer extends Composite {
 			throw new UnsupportedOperationException("Directory transfer not supported yet :(");
 
 		// create transfer control widget
-		final ProgressBar progressBar = new ProgressBar(table, SWT.NONE);
+		final ProgressBar progressBar = new ProgressBar(table, SWT.HORIZONTAL);
 		progressBar.setMaximum(100);
 		final TableEditor editor = buildItem(data.getSource(), data.getOrig().toString(), progressBar);
 
+		// store transfer in map
+		transferMap.put(data, editor.getItem());
+		
 		// save progress bar editor -> required for table redraw
 		editorMap.put(editor.getItem(), editor);
 
 		// add listener in current transfer command
 		final List<Listener> list = new ArrayList<Listener>(2);
 		list.add(new TransferProgressListener(progressBar));
-		list.add(new TransferCompleteListener(this, editor.getItem()));
+		list.add(new TransferCompleteListener(this, data));
 
 		return list;
 	}
 	
 	/** Remove a transfer from the transfer widget. */
-	public void remove(final TableItem item) {
+	public void remove(final TransferData data) {
+		final TableItem item = transferMap.remove(data);
+		if( item == null || item.isDisposed() )
+			return;
+		
 		item.dispose();
 
 		// remove from editor list and redraw table
@@ -99,7 +109,7 @@ public class TransferViewer extends Composite {
 	/** Init sidebar with action button for current transfers. */
 	private ToolBar buildSideBar() {
 		final ToolBar sideBar = new ToolBar(this, SWT.NONE | SWT.VERTICAL);
-		final FormData sideBarData = new FormDataBuilder().top(0, 0).bottom(100, -25).left(100, -25).right(100, -5).build();
+		final FormData sideBarData = new FormDataBuilder().top(0).bottom(100, -25).left(100, -25).right(100, -5).build();
 		sideBar.setLayoutData(sideBarData);
 
 		final ToolItem play = new ToolItem(sideBar, SWT.PUSH);
@@ -135,7 +145,7 @@ public class TransferViewer extends Composite {
 	/** Init transfer table. */
 	private Table buildTransferTable() {
 		final Composite tableComposite = new Composite(this, SWT.NONE);
-		final FormData tableData = new FormDataBuilder().top(0, 0).bottom(100, -5).left(0, 5).right(sideBar).build();
+		final FormData tableData = new FormDataBuilder().top(0).bottom(100, -5).left(0, 5).right(sideBar).build();
 		tableComposite.setLayoutData(tableData);
 		tableComposite.setLayout(new FillLayout());
 

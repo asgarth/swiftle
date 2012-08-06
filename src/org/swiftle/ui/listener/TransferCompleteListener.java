@@ -2,7 +2,7 @@ package org.swiftle.ui.listener;
 
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.TableItem;
+import org.swiftle.network.TransferData;
 import org.swiftle.ui.TransferViewer;
 import org.swiftle.ui.event.TransferCompleteEvent;
 
@@ -10,11 +10,11 @@ public class TransferCompleteListener implements Listener {
 
 	private final TransferViewer transferViewer;
 
-	private final TableItem item;
+	private final TransferData data;
 
-	public TransferCompleteListener(final TransferViewer transferViewer, final TableItem item) {
+	public TransferCompleteListener(final TransferViewer transferViewer, final TransferData data) {
 		this.transferViewer = transferViewer;
-		this.item = item;
+		this.data = data;
 	}
 
 	public void handleEvent(Event event) {
@@ -23,7 +23,7 @@ public class TransferCompleteListener implements Listener {
 		
 		transferViewer.getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				transferViewer.remove(item);
+				transferViewer.remove(data);
 			}
 		});
 	}

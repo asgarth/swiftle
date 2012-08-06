@@ -3,13 +3,13 @@ package org.swiftle.ui.dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.snow.util.Displays;
+import org.snow.util.ImageUtils;
 import org.snow.util.layout.FormDataBuilder;
 import org.snow.window.ApplicationWindow;
 import org.snow.window.header.Header;
@@ -17,7 +17,7 @@ import org.snow.window.header.Header;
 public class TitleHeader extends Header {
 
 	public static final int HEIGHT = 40;
-	
+
 	public static final int IMAGE_SIZE = 32;
 
 	public TitleHeader(final ApplicationWindow parent, final String message, final String image) {
@@ -39,13 +39,13 @@ public class TitleHeader extends Header {
 		label.setLayoutData(labelData);
 
 		label.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-		label.setImage( new Image( parent.getDisplay(), image ) );
-		label.addDisposeListener( new DisposeListener() {
-			public void widgetDisposed( DisposeEvent e ) {
-				if( label.getImage() != null && !label.getImage().isDisposed() )
+		label.setImage(ImageUtils.loadImageFromFile(parent.getDisplay(), image));
+		label.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				if (label.getImage() != null && !label.getImage().isDisposed())
 					label.getImage().dispose();
 			}
-		} );
+		});
 
 		/** init header message */
 		final Label text = new Label(this, SWT.NONE);
@@ -61,7 +61,7 @@ public class TitleHeader extends Header {
 		text.setLayoutData(textData);
 		text.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
-				if (text.getFont() != null && ! text.getFont().isDisposed())
+				if (text.getFont() != null && !text.getFont().isDisposed())
 					text.getFont().dispose();
 			}
 		});

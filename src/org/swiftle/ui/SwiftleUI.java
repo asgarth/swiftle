@@ -32,10 +32,30 @@ public class SwiftleUI extends ApplicationWindow {
 		content.setLayout(new FormLayout());
 
 		final FileManager fm = new FileManager(content);
-		fm.setLayoutData(new FormDataBuilder().top(0, 0).left(0, 0).right(100, 0).bottom(75, 0).build());
-
 		final TransferViewer tv = new TransferViewer(content);
-		tv.setLayoutData(new FormDataBuilder().top(fm).left(0, 0).right(100, 0).bottom(100, 0).build());
+
+		fm.setLayoutData(new FormDataBuilder().top(0).left(0).right(100).bottom(tv).build());
+		tv.setLayoutData(new FormDataBuilder().top(71).left(0).right(100).bottom(100, 0).build());
+
+		/*
+		final ToolBar transferBar = new ToolBar(content, SWT.FLAT | SWT.HORIZONTAL);
+		transferBar.setLayoutData(new FormDataBuilder().top(tv).bottom(100).left(0, 10).build());
+		final ToolItem transferItem = new ToolItem(transferBar, SWT.NONE);
+		transferItem.setImage(ImageCache.getInstance().getImage("./resources/images/downloads.png"));
+		
+		final ProgressBar transferProgressBar = new ProgressBar(content, SWT.HORIZONTAL | SWT.SMOOTH);
+		transferProgressBar.setLayoutData(new FormDataBuilder().top(tv, 5).bottom(100, -5).left(transferBar, 10).right(transferBar, 210).build());
+		*/
+		
+		/*
+		tv.setLayoutData(new FormDataBuilder().top(fm).left(0).right(100).bottom(100, -24).build());
+		
+		final ToolBar bottomBar = new ToolBar(content, SWT.FLAT);
+		bottomBar.setLayoutData(new FormDataBuilder().top(tv).left(0).right(100).bottom(100).build());
+
+		final ToolItem downloadCountItem = new ToolItem(bottomBar, SWT.NONE);
+		downloadCountItem.setImage(ImageCache.getInstance().getImage("/home/sergio/Desktop/download.png"));
+		*/
 		
 		TransferManager.getInstance().setViewer(tv);
 	}

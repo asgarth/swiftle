@@ -10,17 +10,17 @@ import org.swiftle.network.connection.Connection;
 public class TransferData {
 
 	private final Entry source;
-	
+
 	private final Entry target;
 
 	private final Connection orig;
 
 	private final Connection dest;
-	
+
 	private final List<Listener> listeners;
-	
+
 	private boolean started;
-	
+
 	public TransferData(final Entry source, final Entry target, final Connection orig, final Connection dest) {
 		this.source = source;
 		this.target = target;
@@ -28,14 +28,14 @@ public class TransferData {
 		this.dest = dest;
 
 		this.listeners = new LinkedList<Listener>();
-		
+
 		this.started = false;
 	}
 
 	public Entry getSource() {
 		return source;
 	}
-	
+
 	public Entry getTarget() {
 		return target;
 	}
@@ -47,11 +47,11 @@ public class TransferData {
 	public Connection getDest() {
 		return dest;
 	}
-	
+
 	public void addListener(final Listener listener) {
 		listeners.add(listener);
 	}
-	
+
 	public boolean removeListener(final Listener listener) {
 		return listeners.remove(listener);
 	}

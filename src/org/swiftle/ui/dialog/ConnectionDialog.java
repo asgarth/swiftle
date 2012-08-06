@@ -32,7 +32,8 @@ public class ConnectionDialog extends ApplicationDialog {
 
 	public enum Protocol {
 		FTP("FTP", "./resources/themes/ftp.png"),
-		SFTP("SFTP", "./resources/themes/sftp.png");
+		SFTP("SFTP", "./resources/themes/sftp.png"),
+		SAMBA("SAMBA", "./resources/themes/samba.png");
 
 		private final String text;
 		private final String image;
@@ -72,7 +73,7 @@ public class ConnectionDialog extends ApplicationDialog {
 		/** protocol group */
 		final Group protocolGroup = new Group(composite, SWT.NONE);
 		protocolGroup.setText("Protocol");
-		final FormData protocolData = new FormDataBuilder().top(0, 5).bottom(100, -5).left(0, 5).right(30, 0).build();
+		final FormData protocolData = new FormDataBuilder().top(0, 5).bottom(100, -5).left(0, 5).right(30).build();
 		protocolGroup.setLayoutData(protocolData);
 		final FillLayout protocolLayout = new FillLayout();
 		protocolLayout.marginHeight = 5;
