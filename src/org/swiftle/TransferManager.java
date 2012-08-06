@@ -31,7 +31,7 @@ public class TransferManager {
 
 	public synchronized void add(final TransferData data) {
 		logger.info("New transfer queued: " + data.getSource().getName());
-		List<Listener> list = transferViewer.add(data);
+		final List<Listener> list = transferViewer.add(data);
 		for (Listener l : list)
 			data.addListener(l);
 

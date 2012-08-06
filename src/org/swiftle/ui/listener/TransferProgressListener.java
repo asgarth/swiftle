@@ -1,5 +1,6 @@
 package org.swiftle.ui.listener;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
@@ -20,6 +21,11 @@ public class TransferProgressListener implements Listener {
 		final TransferUpdateEvent progressEvent = (TransferUpdateEvent) event;
 		progressBar.getDisplay().asyncExec(new Runnable() {
 			public void run() {
+				if(progressEvent.getProgress() < 0) {
+					progressBar.setState(SWT.ERROR);
+					return;
+				}
+				
 				progressBar.setSelection(progressEvent.getProgress());
 			}
 		});

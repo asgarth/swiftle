@@ -69,4 +69,9 @@ public class TransferData {
 			listener.handleEvent(event);
 	}
 
+	@Override
+	public String toString() {
+		return source.getName() + "@" + orig;
+	}
+
 }

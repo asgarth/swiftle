@@ -105,6 +105,16 @@ public class TransferViewer extends Composite {
 
 		table.layout();
 	}
+	
+	/** Remove a transfer from the transfer widget. */
+	public void error(final TransferData data) {
+		final TableItem item = transferMap.get(data);
+		if( item == null || item.isDisposed() )
+			return;
+		
+		item.setImage(cache.getImage("./resources/themes/error.png"));
+		item.setForeground(item.getDisplay().getSystemColor(SWT.COLOR_RED));
+	}
 
 	/** Init sidebar with action button for current transfers. */
 	private ToolBar buildSideBar() {
@@ -149,8 +159,8 @@ public class TransferViewer extends Composite {
 		tableComposite.setLayoutData(tableData);
 		tableComposite.setLayout(new FillLayout());
 
-		final Table table = new Table(tableComposite, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
-		table.setLinesVisible(true);
+		final Table table = new Table(tableComposite, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION | SWT.HIDE_SELECTION);
+		table.setLinesVisible(false);
 		table.setHeaderVisible(true);
 
 		final TableColumn filename = new TableColumn(table, SWT.LEFT);

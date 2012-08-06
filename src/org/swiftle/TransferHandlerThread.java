@@ -1,6 +1,5 @@
 package org.swiftle;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -39,18 +38,20 @@ public class TransferHandlerThread implements Runnable {
 			while ((len = in.read(buf)) > 0) {
 				out.write(buf, 0, len);
 				current += len;
-				
+
 				data.notify(new TransferUpdateEvent((int)(current * 100 / total)));
 			}
 			orig.closeGetStream(in);
 			dest.closePutStream(out);
-		} catch (IOException e) {
-			logger.error("Error transfering file " + data.getSource().getName(), e);
+		} catch (Exception e) {
+			logger.error("Error transfering file " + data.toString(), e);
+			data.notify(new TransferCompleteEvent(false));
+			data.notify(new TransferUpdateEvent(-1));
 			return;
 		}
 
 		logger.info("Transfer completed for file: " + data.getSource().getName());
-		
+
 		// send notification events
 		data.notify(new TransferCompleteEvent(true));
 		data.notify(new NewFileEvent(data.getTarget()));

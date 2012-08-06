@@ -20,10 +20,16 @@ public class TransferCompleteListener implements Listener {
 	public void handleEvent(Event event) {
 		if (! (event instanceof TransferCompleteEvent))
 			return;
-		
+
+		final boolean success = ((TransferCompleteEvent) event).isSuccess();
 		transferViewer.getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				transferViewer.remove(data);
+				if (success) {
+					transferViewer.remove(data);
+					return;
+				}
+
+				transferViewer.error(data);
 			}
 		});
 	}
