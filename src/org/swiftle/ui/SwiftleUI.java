@@ -1,6 +1,9 @@
 package org.swiftle.ui;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -12,17 +15,18 @@ import org.snow.util.cache.ImageCache;
 import org.snow.util.layout.FormDataBuilder;
 import org.snow.window.ApplicationWindow;
 import org.snow.window.dialog.AboutDialog;
-import org.swiftle.TransferManager;
 import org.swiftle.util.Constants;
 
 public class SwiftleUI extends ApplicationWindow {
 
-	private final ImageCache imageCache = ImageCache.getInstance();
+	private final ImageCache cache = ImageCache.getInstance();
 
 	public SwiftleUI(final Display display, final String title, final int width, final int height) {
 		super(display, title, width, height);
 
-		shell.setImage(imageCache.getImage("./resources/images/swiftle.png"));
+		shell.setImages(new Image[] { cache.getImage("./resources/images/swiftle.png"),
+				cache.getImage("./resources/images/swiftle_32.png"),
+				cache.getImage("./resources/images/swiftle_16.png")});
 
 		/** init menu */
 		final Menu menu = buildMenu();
@@ -33,31 +37,24 @@ public class SwiftleUI extends ApplicationWindow {
 
 		final FileManager fm = new FileManager(content);
 		final TransferViewer tv = new TransferViewer(content);
+		final TransferBar tb = new TransferBar(content);
 
 		fm.setLayoutData(new FormDataBuilder().top(0).left(0).right(100).bottom(tv).build());
-		tv.setLayoutData(new FormDataBuilder().top(71).left(0).right(100).bottom(100, 0).build());
+		tv.setLayoutData(new FormDataBuilder().top(70).left(0).right(100).bottom(tb, 0).build());
+		tb.setLayoutData(new FormDataBuilder().top(100, -TransferBar.TRANSFER_BAR_HIGHT).left(0).right(100).bottom(100, 0).build());
 
-		/*
-		final ToolBar transferBar = new ToolBar(content, SWT.FLAT | SWT.HORIZONTAL);
-		transferBar.setLayoutData(new FormDataBuilder().top(tv).bottom(100).left(0, 10).build());
-		final ToolItem transferItem = new ToolItem(transferBar, SWT.NONE);
-		transferItem.setImage(ImageCache.getInstance().getImage("./resources/images/downloads.png"));
-		
-		final ProgressBar transferProgressBar = new ProgressBar(content, SWT.HORIZONTAL | SWT.SMOOTH);
-		transferProgressBar.setLayoutData(new FormDataBuilder().top(tv, 5).bottom(100, -5).left(transferBar, 10).right(transferBar, 210).build());
-		*/
-		
-		/*
-		tv.setLayoutData(new FormDataBuilder().top(fm).left(0).right(100).bottom(100, -24).build());
-		
-		final ToolBar bottomBar = new ToolBar(content, SWT.FLAT);
-		bottomBar.setLayoutData(new FormDataBuilder().top(tv).left(0).right(100).bottom(100).build());
+		tb.setHidePanelAction(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				tv.setVisible(! tv.getVisible());
+				fm.setLayoutData(new FormDataBuilder().top(0).left(0).right(100).bottom(tv.getVisible() ? tv : tb).build());
+				
+				tb.setHidePanelImage(cache.getImage(tv.getVisible() ? "./resources/images/transfers_down.png" : "./resources/images/transfers_up.png"));
+				
+				content.layout();
+			}
+		});
 
-		final ToolItem downloadCountItem = new ToolItem(bottomBar, SWT.NONE);
-		downloadCountItem.setImage(ImageCache.getInstance().getImage("/home/sergio/Desktop/download.png"));
-		*/
-		
-		TransferManager.getInstance().setViewer(tv);
+		//TransferManager.getInstance().setViewer(tv);
 	}
 
 	private Menu buildMenu() {
@@ -72,7 +69,7 @@ public class SwiftleUI extends ApplicationWindow {
 
 		final MenuItem quitItem = new MenuItem(fileMenu, SWT.PUSH);
 		quitItem.setText("Quit");
-		quitItem.setImage(imageCache.getImage("./resources/themes/quit.png"));
+		quitItem.setImage(cache.getImage("./resources/themes/quit.png"));
 		quitItem.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				shell.close();
@@ -86,7 +83,7 @@ public class SwiftleUI extends ApplicationWindow {
 		tools.setMenu(toolsMenu);
 		final MenuItem preferenceItem = new MenuItem(toolsMenu, SWT.PUSH);
 		preferenceItem.setText("Preferences");
-		preferenceItem.setImage(imageCache.getImage("./resources/themes/preference.png"));
+		preferenceItem.setImage(cache.getImage("./resources/themes/preference.png"));
 		preferenceItem.setEnabled(false);
 
 		// help menu
@@ -96,7 +93,7 @@ public class SwiftleUI extends ApplicationWindow {
 		help.setMenu(helpMenu);
 		final MenuItem aboutItem = new MenuItem(helpMenu, SWT.PUSH);
 		aboutItem.setText("About...");
-		aboutItem.setImage(imageCache.getImage("./resources/themes/about.png"));
+		aboutItem.setImage(cache.getImage("./resources/themes/about.png"));
 		aboutItem.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				final AboutDialog dialog = new AboutDialog(shell, "About " + Constants.SWIFTLE, "./resources/images/about.png", "Version: " + Constants.getVersion());

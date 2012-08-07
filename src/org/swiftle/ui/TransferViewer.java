@@ -35,8 +35,10 @@ import org.swiftle.ui.util.IconUtils;
 
 public class TransferViewer extends Composite {
 
+	private static final int BOTTOM_BAR_HIGHT = 24;
+	
 	private final TransferManager manager;
-
+	
 	private final ImageCache cache;
 
 	private final Map<TransferData, TableItem> transferMap;
@@ -119,7 +121,7 @@ public class TransferViewer extends Composite {
 	/** Init sidebar with action button for current transfers. */
 	private ToolBar buildSideBar() {
 		final ToolBar sideBar = new ToolBar(this, SWT.NONE | SWT.VERTICAL);
-		final FormData sideBarData = new FormDataBuilder().top(0).bottom(100, -25).left(100, -25).right(100, -5).build();
+		final FormData sideBarData = new FormDataBuilder().top(0).bottom(100, -BOTTOM_BAR_HIGHT).left(100, -25).right(100, -5).build();
 		sideBar.setLayoutData(sideBarData);
 
 		final ToolItem play = new ToolItem(sideBar, SWT.PUSH);
@@ -154,12 +156,11 @@ public class TransferViewer extends Composite {
 
 	/** Init transfer table. */
 	private Table buildTransferTable() {
-		final Composite tableComposite = new Composite(this, SWT.NONE);
-		final FormData tableData = new FormDataBuilder().top(0).bottom(100, -5).left(0, 5).right(sideBar).build();
-		tableComposite.setLayoutData(tableData);
-		tableComposite.setLayout(new FillLayout());
-
-		final Table table = new Table(tableComposite, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION | SWT.HIDE_SELECTION);
+		final Composite container = new Composite(this, SWT.NONE);
+		container.setLayoutData(new FormDataBuilder().top(0).bottom(100).left(0, 5).right(sideBar).build());
+		container.setLayout(new FillLayout());
+		
+		final Table table = new Table(container, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION | SWT.HIDE_SELECTION);
 		table.setLinesVisible(false);
 		table.setHeaderVisible(true);
 
@@ -177,7 +178,7 @@ public class TransferViewer extends Composite {
 
 		return table;
 	}
-
+	
 	/** Create the table entry for a new transfer job. */
 	private TableEditor buildItem(final Entry entry, final String connection, final ProgressBar progressBar) {
 		final TableItem item = new TableItem(table, SWT.NONE);
