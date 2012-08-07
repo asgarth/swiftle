@@ -10,14 +10,14 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.snow.util.Platform;
 import org.swiftle.network.DirectoryEntry;
 import org.swiftle.network.Entry;
 import org.swiftle.network.FileEntry;
-import org.swiftle.util.Constants;
 
 public class LocalConnection extends AbstractConnection implements Connection {
 
-	private static final String SEPARATOR = Constants.getPathSeparator();
+	private static final String SEPARATOR = Platform.getPathSeparator();
 
 	private static final String HOME = System.getProperty("user.home");
 

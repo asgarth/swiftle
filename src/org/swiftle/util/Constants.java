@@ -1,8 +1,8 @@
 package org.swiftle.util;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import static org.snow.util.Platform.getPathSeparator;
+
+import org.snow.util.Platform;
 
 public class Constants {
 
@@ -16,12 +16,8 @@ public class Constants {
 		return dir;
 	}
 
-	public static String getUserDir() {
-		return System.getProperty("user.home") + getPathSeparator() + ".swiftle";
-	}
-
-	public static String getPathSeparator() {
-		return System.getProperty("file.separator");
+	public static String getAppDir() {
+		return Platform.getUserApp(SWIFTLE.toLowerCase());
 	}
 
 	/** Return the application version. */
@@ -31,39 +27,12 @@ public class Constants {
 		if (version != null && !version.equals(""))
 			return version;
 
-		// try to get version from build.version file
-		version = getAntVersion();
-		if (version != null && !version.equals(""))
-			return version;
-
-		return "Unknown";
+		return "DEV";
 	}
 
 	private static String getManifestVersion() {
 		final Package p = Constants.class.getPackage();
 		return p.getSpecificationVersion();
-	}
-
-	private static String getAntVersion() {
-		final InputStream stream = Constants.class.getClassLoader().getResourceAsStream("./build.version");
-		if (stream == null)
-			return null;
-
-		String version = null;
-		try {
-			final Properties properties = new Properties();
-			properties.load(stream);
-
-			version = properties.getProperty("version.number");
-		} catch (IOException ignore) {
-		} finally {
-			try {
-				stream.close();
-			} catch (Throwable ignore) {
-			}
-		}
-
-		return version;
 	}
 
 }

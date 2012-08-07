@@ -115,18 +115,18 @@ public class FileBrowser extends Composite {
 	}
 
 	public void add(final Entry entry) {
+		final String filePath = entry.getAbsolutePath().replace(getConnection().getPathSeparator() + entry.getName(), "");
+		final String browserPath = getConnection().pwd();
+		if (! filePath.equals(browserPath))
+			return;
+
+		if (currentEntryMap.containsKey(entry.getName()))
+			return;
+
+		currentEntryMap.put(entry.getName(), entry);
+
 		BusyIndicator.showWhile(getDisplay(), new Runnable() {
 			public void run() {
-				final String filePath = entry.getAbsolutePath().replace(getConnection().getPathSeparator() + entry.getName(), "");
-				final String browserPath = getConnection().pwd();
-				if (! filePath.equals(browserPath))
-					return;
-
-				if (currentEntryMap.containsKey(entry.getName()))
-					return;
-
-				currentEntryMap.put(entry.getName(), entry);
-
 				refresh(browserPath, new ArrayList<Entry>(currentEntryMap.values()));
 			}
 		});
@@ -210,9 +210,10 @@ public class FileBrowser extends Composite {
 		final ToolItem connectionItem = new ToolItem(toolBar, SWT.NONE);
 		connectionItem.setImage(cache.getImage("./resources/themes/connection_list.png"));
 		connectionItem.setToolTipText("Connect to a remote host");
-		final Menu connectionMenu = buildConnectionMenu();
 		connectionItem.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(final SelectionEvent e) {
+				final Menu connectionMenu = buildConnectionMenu();
+
 				final Rectangle rect = connectionItem.getBounds();
 				Point pt = new Point(rect.x, rect.y + rect.height);
 				pt = toolBar.toDisplay(pt);
@@ -257,8 +258,6 @@ public class FileBrowser extends Composite {
 			}
 		});
 
-		new ToolItem(toolBar, SWT.SEPARATOR);
-
 		final ToolItem up = new ToolItem(toolBar, SWT.PUSH);
 		up.setImage(cache.getImage("./resources/themes/go-up.png"));
 		up.setToolTipText("Go to parent directory");
@@ -300,7 +299,7 @@ public class FileBrowser extends Composite {
 		});
 
 		/** add resive listener to redraw path toolbar item */
-		addListener(SWT.Resize, new Listener() {
+		toolBar.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(final Event e) {
 				final Rectangle rect = getClientArea();
 				final Point size = toolBar.computeSize(rect.width, SWT.DEFAULT);
@@ -326,7 +325,7 @@ public class FileBrowser extends Composite {
 
 		final MenuItem disconnectItem = new MenuItem(menu, SWT.PUSH);
 		disconnectItem.setText("Disconnect");
-		disconnectItem.setEnabled(false);
+		disconnectItem.setEnabled((connection instanceof LocalConnection) ? false : true);
 
 		newConnectionItem.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
@@ -352,15 +351,12 @@ public class FileBrowser extends Composite {
 				});
 
 				connect(newConnection);
-				disconnectItem.setEnabled(true);
-
 			}
 		});
 
 		disconnectItem.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				connect(new LocalConnection());
-				disconnectItem.setEnabled(false);
 			}
 		});
 

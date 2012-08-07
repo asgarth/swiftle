@@ -19,7 +19,7 @@ public class Swiftle {
 		final Display display = new Display();
 
 		/** open main window */
-		ui = new SwiftleUI(display, Constants.SWIFTLE, 1000, 600);
+		ui = new SwiftleUI(display, Constants.SWIFTLE, 960, 640);
 		ui.open();
 	}
 
@@ -31,8 +31,11 @@ public class Swiftle {
 	public static void main(final String[] args) {
 		SingleLineFormatter.configLogFormat();
 
-		logger.info(Constants.SWIFTLE + " - version: " + Constants.getVersion() + " (java: " + System.getProperty("java.version") + ")");
-		logger.info("System: " + System.getProperty("os.name") + ", " + System.getProperty("os.version") + " - " + System.getProperty("os.arch"));
+		logger.info(Constants.SWIFTLE + " - version: " + Constants.getVersion() + ", running on "
+				+ System.getProperty("os.name") + " " + System.getProperty("os.version") 
+				+ " (" + System.getProperty("os.arch") + ") - java: " + System.getProperty("java.version"));
+
+		logger.info("Application config dir: " + Constants.getAppDir());
 
 		/** run main program */
 		final Swiftle app = new Swiftle();
