@@ -19,10 +19,10 @@ public class Swiftle {
 		final Display display = new Display();
 
 		/** open main window */
-		ui = new SwiftleUI(display, Constants.SWIFTLE, 800, 600);
+		ui = new SwiftleUI(display, Constants.SWIFTLE, 1000, 600);
 		ui.open();
 	}
-	
+
 	/** Release acquired OS resources. */
 	private void clear() {
 		ImageCache.getInstance().dispose();

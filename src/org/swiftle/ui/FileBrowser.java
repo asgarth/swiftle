@@ -3,7 +3,6 @@ package org.swiftle.ui;
 import static org.swiftle.util.StringUtils.isEmpty;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +72,7 @@ public class FileBrowser extends Composite {
 
 		/** init filesystem table */
 		table = buildFilesystemTable();
-		
+
 		addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent arg0) {
 				if (connection != null && connection.isConnected())
@@ -83,38 +82,20 @@ public class FileBrowser extends Composite {
 	}
 
 	public void connect(final Connection newConnection) {
-		if (connection != null && connection.isConnected())
-			connection.disconnect();
+		BusyIndicator.showWhile(getDisplay(), new Runnable() {
+			public void run() {
+				if (connection != null && connection.isConnected())
+					connection.disconnect();
 
-		this.connection = newConnection;
+				connection = newConnection;
 
-		refresh(connection.pwd(), connection.list());
+				refresh(connection.pwd(), connection.list());
+			}
+		});
 	}
-	
+
 	public Connection getConnection() {
 		return connection;
-	}
-	
-	public void refresh(final String currentPath, final List<Entry> entries) {
-		/** clear old entries */
-		table.removeAll();
-
-		/** refresh toolbar path */
-		toolBarPath.setText(currentPath);
-
-		/** sort entries list */
-		new ListSortAction(entries, true).execute();
-
-		/** add files list */
-		currentEntryMap = new HashMap<String, Entry>();
-		//currentEntryMap.put(prevEntry.getName(), prevEntry);
-		for (Entry entry : entries) {
-			currentEntryMap.put(entry.getName(), entry);
-
-			final TableItem item = new TableItem(table, SWT.NONE);
-			item.setText(new String[] { entry.getName(), entry.isFile() ? SizeUnit.asString(entry.size()) : "" });
-			item.setImage(IconUtils.getIcon(entry));
-		}
 	}
 
 	public Entry getSelectedEntry() {
@@ -133,28 +114,54 @@ public class FileBrowser extends Composite {
 		return selected;
 	}
 
-	public List<TableItem> getSelectedItems() {
-		return Arrays.asList(table.getSelection());
+	public void add(final Entry entry) {
+		BusyIndicator.showWhile(getDisplay(), new Runnable() {
+			public void run() {
+				final String filePath = entry.getAbsolutePath().replace(getConnection().getPathSeparator() + entry.getName(), "");
+				final String browserPath = getConnection().pwd();
+				if (! filePath.equals(browserPath))
+					return;
+
+				if (currentEntryMap.containsKey(entry.getName()))
+					return;
+
+				currentEntryMap.put(entry.getName(), entry);
+
+				refresh(browserPath, new ArrayList<Entry>(currentEntryMap.values()));
+			}
+		});
 	}
 
-	public boolean add(final Entry entry) {
-		final String path = entry.getAbsolutePath().replace(getConnection().getPathSeparator() + entry.getName(), "");
-		if (!path.equals(getConnection().pwd()))
-			return false;
+	private void refresh(final String currentPath, final List<Entry> entries) {
+		/** clear old entries */
+		table.removeAll();
 
-		if (currentEntryMap.containsKey(entry.getName()))
-			return false;
+		/** refresh toolbar path */
+		toolBarPath.setText(currentPath);
 
-		currentEntryMap.put(entry.getName(), entry);
+		/** sort entries list */
+		new ListSortAction(entries, true).execute();
 
-		final TableItem item = new TableItem(table, SWT.NONE);
-		item.setText(new String[] { entry.getName(), entry.isFile() ? SizeUnit.asString(entry.size()) : "" });
-		item.setImage(IconUtils.getIcon(entry));
+		/** add files list */
+		currentEntryMap = new HashMap<String, Entry>();
+		for (Entry entry : entries) {
+			currentEntryMap.put(entry.getName(), entry);
 
-		return true;
+			final TableItem item = new TableItem(table, SWT.NONE);
+			item.setText(new String[] { entry.getName(), entry.isFile() ? SizeUnit.asString(entry.size()) : "" });
+			item.setImage(IconUtils.getIcon(entry));
+		}
 	}
 
-	/** Init file table. */
+	private void cd(final String path) {
+		BusyIndicator.showWhile(getDisplay(), new Runnable() {
+			public void run() {
+				connection.cd(path);
+				refresh(connection.pwd(), connection.list());
+			}
+		});
+	}
+
 	private Table buildFilesystemTable() {
 		final Composite tableComposite = new Composite(this, SWT.NONE);
 		final GridData tableData = new GridDataBuilder(GridData.FILL_BOTH).build();
@@ -181,12 +188,7 @@ public class FileBrowser extends Composite {
 				final String selection = table.getSelection()[0].getText(0);
 
 				if (table.getSelection()[0].getImage().equals(IconUtils.getDirectoryIcon())) {
-					BusyIndicator.showWhile(getDisplay(), new Runnable() {
-						public void run() {
-							connection.cd(selection);
-							refresh(connection.pwd(), connection.list());
-						}
-					});
+					cd(selection);
 				} else {
 					if (connection instanceof LocalConnection)
 						Program.launch(connection.pwd() + "/" + selection);
@@ -201,7 +203,6 @@ public class FileBrowser extends Composite {
 		return table;
 	}
 
-	/** Init toolbar. */
 	private ToolBar buildToolBar() {
 		final ToolBar toolBar = new ToolBar(this, SWT.FLAT);
 		toolBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -209,47 +210,14 @@ public class FileBrowser extends Composite {
 		final ToolItem connectionItem = new ToolItem(toolBar, SWT.NONE);
 		connectionItem.setImage(cache.getImage("./resources/themes/connection_list.png"));
 		connectionItem.setToolTipText("Connect to a remote host");
+		final Menu connectionMenu = buildConnectionMenu();
 		connectionItem.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(final SelectionEvent e) {
-				final Menu menu = new Menu(getShell(), SWT.POP_UP);
-				final MenuItem newConnectionItem = new MenuItem(menu, SWT.PUSH);
-				newConnectionItem.setText("New connection...");
-				newConnectionItem.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event e) {
-						final ConnectionDialog dialog = new ConnectionDialog(getShell());
-						dialog.open();
-
-						if (isEmpty(dialog.getServer()) || dialog.getProtocol() == null)
-							return;
-
-						final Connection newConnection;
-						if (dialog.getProtocol() == ConnectionDialog.Protocol.SFTP)
-							newConnection = new SFTPConnection();
-						else
-							newConnection = new FTPConnection();
-
-						if( dialog.getPort() > 0 )
-							newConnection.connect(dialog.getServer(), dialog.getPort(), dialog.getUser(), dialog.getPwd());
-						else
-							newConnection.connect(dialog.getServer(), dialog.getUser(), dialog.getPwd());
-
-						connect(newConnection);
-					}
-				});
-				new MenuItem(menu, SWT.SEPARATOR);
-				final MenuItem localItem = new MenuItem(menu, SWT.PUSH);
-				localItem.setText("Open local filesystem");
-				localItem.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event e) {
-						connect(new LocalConnection());
-					}
-				});
-
 				final Rectangle rect = connectionItem.getBounds();
 				Point pt = new Point(rect.x, rect.y + rect.height);
 				pt = toolBar.toDisplay(pt);
-				menu.setLocation(pt.x, pt.y);
-				menu.setVisible(true);
+				connectionMenu.setLocation(pt.x, pt.y);
+				connectionMenu.setVisible(true);
 			}
 		});
 
@@ -296,12 +264,7 @@ public class FileBrowser extends Composite {
 		up.setToolTipText("Go to parent directory");
 		up.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				BusyIndicator.showWhile(getDisplay(), new Runnable() {
-					public void run() {
-						connection.cd("..");
-						refresh(connection.pwd(), connection.list());
-					}
-				});
+				cd("..");
 			}
 		});
 
@@ -320,15 +283,19 @@ public class FileBrowser extends Composite {
 		remove.setToolTipText("Delete selected files");
 		remove.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				for (int index : table.getSelectionIndices()) {
-					final TableItem item = table.getItem(index);
+				BusyIndicator.showWhile(getDisplay(), new Runnable() {
+					public void run() {
+						for (int index : table.getSelectionIndices()) {
+							final TableItem item = table.getItem(index);
 
-					boolean res = connection.delete(item.getText(0));
-					if (res) {
-						currentEntryMap.remove(item.getText(0));
-						table.remove(index);
+							boolean res = connection.delete(item.getText(0));
+							if (res) {
+								currentEntryMap.remove(item.getText(0));
+								table.remove(index);
+							}
+						}
 					}
-				}
+				});
 			}
 		});
 
@@ -348,6 +315,56 @@ public class FileBrowser extends Composite {
 		});
 
 		return toolBar;
+	}
+
+	private Menu buildConnectionMenu() {
+		final Menu menu = new Menu(getShell(), SWT.POP_UP);
+		final MenuItem newConnectionItem = new MenuItem(menu, SWT.PUSH);
+		newConnectionItem.setText("New connection...");
+
+		new MenuItem(menu, SWT.SEPARATOR);
+
+		final MenuItem disconnectItem = new MenuItem(menu, SWT.PUSH);
+		disconnectItem.setText("Disconnect");
+		disconnectItem.setEnabled(false);
+
+		newConnectionItem.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				final ConnectionDialog dialog = new ConnectionDialog(getShell());
+				dialog.open();
+
+				if (isEmpty(dialog.getServer()) || dialog.getProtocol() == null)
+					return;
+
+				final Connection newConnection;
+				if (dialog.getProtocol() == ConnectionDialog.Protocol.SFTP)
+					newConnection = new SFTPConnection();
+				else
+					newConnection = new FTPConnection();
+
+				BusyIndicator.showWhile(getDisplay(), new Runnable() {
+					public void run() {
+						if( dialog.getPort() > 0 )
+							newConnection.connect(dialog.getServer(), dialog.getPort(), dialog.getUser(), dialog.getPwd());
+						else
+							newConnection.connect(dialog.getServer(), dialog.getUser(), dialog.getPwd());
+					}
+				});
+
+				connect(newConnection);
+				disconnectItem.setEnabled(true);
+
+			}
+		});
+
+		disconnectItem.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				connect(new LocalConnection());
+				disconnectItem.setEnabled(false);
+			}
+		});
+
+		return menu;
 	}
 
 }

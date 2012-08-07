@@ -161,6 +161,7 @@ public class ConnectionDialog extends ApplicationDialog {
 				pwd = pwdText.getText();
 
 				shell.close();
+
 				return true;
 			}
 		});

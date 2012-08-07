@@ -68,6 +68,9 @@ public class FileManager extends Composite {
 	
 	private void startTransfer(final FileBrowser orig, final FileBrowser dest) {
 		final Entry source = orig.getSelectedEntry();
+		if (source == null)
+			return;
+		
 		final Entry target;
 		if (source.isFile())
 			target = new FileEntry(source.getName(), dest.getConnection().pwd() + dest.getConnection().getPathSeparator() + source.getName(), source.size());
