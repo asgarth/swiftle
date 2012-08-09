@@ -201,9 +201,9 @@ public class FTPConnection extends AbstractConnection implements Connection {
 			final FTPFile[] fileList = client.listFiles();
 			for (FTPFile file : fileList) {
 				if (file.isDirectory())
-					list.add(new DirectoryEntry(file.getName(), dir + PATH_SEPARATOR + file.getName()));
+					list.add(new DirectoryEntry(file.getName(), dir + getPathSeparator() + file.getName()));
 				else
-					list.add(new FileEntry(file.getName(), dir + PATH_SEPARATOR + file.getName(), file.getSize()));
+					list.add(new FileEntry(file.getName(), dir + getPathSeparator() + file.getName(), file.getSize()));
 			}
 
 		} catch (IOException e) {

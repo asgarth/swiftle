@@ -13,8 +13,12 @@ public class ConnectionFactory {
 		final Connection newConnection;
 		if (protocol == Protocol.SFTP)
 			newConnection = new SFTPConnection();
-		else
+		else if (protocol == Protocol.FTP)
 			newConnection = new FTPConnection();
+		else if (protocol == Protocol.SAMBA)
+			newConnection = new SambaConnection();
+		else
+			throw new UnsupportedOperationException("Protocol not available: + " + protocol.name());
 
 		if( port > 0 )
 			newConnection.connect(host, port, user, pwd);

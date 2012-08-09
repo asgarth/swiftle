@@ -33,7 +33,7 @@ public class ConnectionDialog extends ApplicationDialog {
 
 	private Protocol protocol;
 
-	private String server;
+	private String host;
 
 	private int port;
 
@@ -134,7 +134,7 @@ public class ConnectionDialog extends ApplicationDialog {
 		footer.addOkAction(new Action() {
 			public boolean execute() {
 				protocol = Protocol.valueOf(table.getSelection()[0].getText());
-				server = serverText.getText();
+				host = serverText.getText();
 				port = isEmpty(portText.getText().trim()) ? -1 : Integer.parseInt(portText.getText().trim());
 				user = userText.getText();
 				pwd = pwdText.getText();
@@ -151,8 +151,8 @@ public class ConnectionDialog extends ApplicationDialog {
 		return protocol;
 	}
 	
-	public String getServer() {
-		return server;
+	public String getHost() {
+		return host;
 	}
 
 	public int getPort() {

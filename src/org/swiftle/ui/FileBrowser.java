@@ -353,20 +353,20 @@ public class FileBrowser extends Composite {
 				final ConnectionDialog dialog = new ConnectionDialog(getShell());
 				dialog.open();
 
-				if (isEmpty(dialog.getServer()) || dialog.getProtocol() == null)
+				if (isEmpty(dialog.getHost()) || dialog.getProtocol() == null)
 					return;
 
-				final Connection newConnection = ConnectionFactory.build(dialog.getProtocol(), dialog.getServer(), dialog.getPort(), dialog.getUser(), dialog.getPwd());
+				final Connection newConnection = ConnectionFactory.build(dialog.getProtocol(), dialog.getHost(), dialog.getPort(), dialog.getUser(), dialog.getPwd());
 				connect(newConnection);
 				
 				final Server server = new Server(dialog.getProtocol().name());
-				server.set("hostname", dialog.getServer());
+				server.set("hostname", dialog.getHost());
 				if (dialog.getPort() > 0)
 					server.set("port", Integer.toString(dialog.getPort()));
 				server.set("username", dialog.getUser());
 				server.set("password", dialog.getPwd());
 				
-				config.addServer(dialog.getUser() + "@" + dialog.getServer(), server);
+				config.addServer(dialog.getUser() + "@" + dialog.getHost(), server);
 			}
 		});
 
