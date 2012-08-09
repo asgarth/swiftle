@@ -2,6 +2,8 @@ package org.swiftle.util;
 
 import static org.snow.util.Platform.getPathSeparator;
 
+import java.io.File;
+
 import org.snow.util.Platform;
 
 public class Constants {
@@ -17,7 +19,16 @@ public class Constants {
 	}
 
 	public static String getAppDir() {
-		return Platform.getUserApp(SWIFTLE.toLowerCase());
+		// get correct dir for current platform
+		final String localDir = Platform.getUserApp(SWIFTLE.toLowerCase());
+		
+		// create directory if required
+		final File fileLocalDir = new File(localDir);
+		if (! fileLocalDir.exists())
+			if (! fileLocalDir.mkdir())
+				return null;
+			
+		return localDir;
 	}
 
 	/** Return the application version. */

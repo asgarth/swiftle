@@ -36,17 +36,20 @@ import org.snow.util.cache.ImageCache;
 import org.snow.util.layout.GridDataBuilder;
 import org.snow.util.layout.TableColumnAdapter;
 import org.swiftle.ListSortAction;
+import org.swiftle.config.Configuration;
+import org.swiftle.config.Server;
 import org.swiftle.network.Entry;
 import org.swiftle.network.SizeUnit;
 import org.swiftle.network.connection.Connection;
-import org.swiftle.network.connection.FTPConnection;
+import org.swiftle.network.connection.ConnectionFactory;
 import org.swiftle.network.connection.LocalConnection;
-import org.swiftle.network.connection.SFTPConnection;
 import org.swiftle.ui.dialog.ConnectionDialog;
 import org.swiftle.ui.util.IconUtils;
 
 public class FileBrowser extends Composite {
 
+	private final Configuration config = Configuration.getInstance();
+	
 	/** widgets */
 	private final ImageCache cache;
 
@@ -322,6 +325,24 @@ public class FileBrowser extends Composite {
 		newConnectionItem.setText("New connection...");
 
 		new MenuItem(menu, SWT.SEPARATOR);
+		
+		for (final String serverName : config.getServerMap().keySet()) {
+			final MenuItem recentServerItem = new MenuItem(menu, SWT.PUSH);
+			recentServerItem.setText(serverName);
+			
+			recentServerItem.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					final Server server = config.getServerMap().get(recentServerItem.getText());
+					if( server != null ) {
+						final Connection newConnection = ConnectionFactory.build(server.get("protocol"), server.get("hostname"), Integer.parseInt(server.get("port")), server.get("username"), server.get("password"));
+						connect(newConnection);
+					}
+				}
+			});
+		}
+		
+		if (config.getServerMap().keySet().size() > 0)
+			new MenuItem(menu, SWT.SEPARATOR);
 
 		final MenuItem disconnectItem = new MenuItem(menu, SWT.PUSH);
 		disconnectItem.setText("Disconnect");
@@ -335,22 +356,17 @@ public class FileBrowser extends Composite {
 				if (isEmpty(dialog.getServer()) || dialog.getProtocol() == null)
 					return;
 
-				final Connection newConnection;
-				if (dialog.getProtocol() == ConnectionDialog.Protocol.SFTP)
-					newConnection = new SFTPConnection();
-				else
-					newConnection = new FTPConnection();
-
-				BusyIndicator.showWhile(getDisplay(), new Runnable() {
-					public void run() {
-						if( dialog.getPort() > 0 )
-							newConnection.connect(dialog.getServer(), dialog.getPort(), dialog.getUser(), dialog.getPwd());
-						else
-							newConnection.connect(dialog.getServer(), dialog.getUser(), dialog.getPwd());
-					}
-				});
-
+				final Connection newConnection = ConnectionFactory.build(dialog.getProtocol(), dialog.getServer(), dialog.getPort(), dialog.getUser(), dialog.getPwd());
 				connect(newConnection);
+				
+				final Server server = new Server(dialog.getProtocol().name());
+				server.set("hostname", dialog.getServer());
+				if (dialog.getPort() > 0)
+					server.set("port", Integer.toString(dialog.getPort()));
+				server.set("username", dialog.getUser());
+				server.set("password", dialog.getPwd());
+				
+				config.addServer(dialog.getUser() + "@" + dialog.getServer(), server);
 			}
 		});
 

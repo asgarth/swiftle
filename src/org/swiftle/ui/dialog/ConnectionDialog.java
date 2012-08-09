@@ -26,31 +26,10 @@ import org.snow.util.layout.FormDataBuilder;
 import org.snow.window.ApplicationDialog;
 import org.snow.window.footer.StandardFooter;
 import org.swiftle.network.connection.FTPConnection;
+import org.swiftle.network.connection.Protocol;
 import org.swiftle.network.connection.SFTPConnection;
 
 public class ConnectionDialog extends ApplicationDialog {
-
-	public enum Protocol {
-		FTP("FTP", "./resources/themes/ftp.png"),
-		SFTP("SFTP", "./resources/themes/sftp.png"),
-		SAMBA("SAMBA", "./resources/themes/samba.png");
-
-		private final String text;
-		private final String image;
-
-		private Protocol(final String text, final String image) {
-			this.text = text;
-			this.image = image;
-		}
-
-		public String getImage() {
-			return image;
-		}
-
-		public String toString() {
-			return text;
-		}
-	}
 
 	private Protocol protocol;
 

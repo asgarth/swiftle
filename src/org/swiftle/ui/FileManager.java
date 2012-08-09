@@ -66,6 +66,14 @@ public class FileManager extends Composite {
 		});
 	}
 	
+	public FileBrowser getLeft() {
+		return left;
+	}
+	
+	public FileBrowser getRight() {
+		return right;
+	}
+	
 	private void startTransfer(final FileBrowser orig, final FileBrowser dest) {
 		final Entry source = orig.getSelectedEntry();
 		if (source == null)

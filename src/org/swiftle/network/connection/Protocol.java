@@ -1,31 +1,24 @@
 package org.swiftle.network.connection;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public enum Protocol {
 
-	LOCAL( "./" ),
-	FTP( "ftp://" ),
-	SFTP( "sftp://" ),
-	SMB( "\\" );
+	FTP("FTP", "./resources/themes/ftp.png"), SFTP("SFTP", "./resources/themes/sftp.png"), SAMBA("SAMBA",
+			"./resources/themes/samba.png");
 
-	private final String textForm;
+	private final String text;
+	private final String image;
 
-	private Protocol( final String textForm ) {
-		this.textForm = textForm;
+	private Protocol(final String text, final String image) {
+		this.text = text;
+		this.image = image;
 	}
 
-	public String getConnectionString() {
-		return textForm;
+	public String getImage() {
+		return image;
 	}
 
-	public static String[] stringValues() {
-		final List<String> values = new ArrayList<String>();
-		for( Protocol p : values() )
-			values.add( p.name() );
-
-		return values.toArray( new String[values.size()] );
+	public String toString() {
+		return text;
 	}
 
 }

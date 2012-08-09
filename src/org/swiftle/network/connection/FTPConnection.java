@@ -219,16 +219,17 @@ public class FTPConnection extends AbstractConnection implements Connection {
 
 		try {
 			final InputStream stream = client.retrieveFileStream(remote);
-			/*if (! FTPReply.isPositiveIntermediate(client.getReplyCode())) {
-				logger.error("Error retrieving input stream from FTP server (code " + client.getReplyCode() + ")");
+			final int reply = client.getReplyCode();
+			if (! FTPReply.isPositivePreliminary(reply) && ! FTPReply.isPositiveIntermediate(reply)) {
+				logger.error("Error retrieving input stream from FTP server (code " + client.getReplyCode() + ", " +  client.getReplyString() + ")");
 				stream.close();
 				return null;
-			}*/
+			}
 
 			return stream;
 
 		} catch (IOException e) {
-			logger.error("Error performing operation on FTP server (code " + client.getReplyCode() + ")", e);
+			logger.error("Error performing operation on FTP server", e);
 		}
 
 		return null;
@@ -250,8 +251,9 @@ public class FTPConnection extends AbstractConnection implements Connection {
 
 		try {
 			final OutputStream stream = client.storeFileStream(remote);
-			if (! FTPReply.isPositiveIntermediate(client.getReplyCode())) {
-				logger.error("Error creating output stream on FTP server (code " + client.getReplyCode() + ")");
+			final int reply = client.getReplyCode();
+			if (! FTPReply.isPositivePreliminary(reply) && ! FTPReply.isPositiveIntermediate(reply)) {
+				logger.error("Error creating output stream on FTP server (code " + client.getReplyCode() + ", " +  client.getReplyString() + ")");
 				stream.close();
 				return null;
 			}
@@ -259,7 +261,7 @@ public class FTPConnection extends AbstractConnection implements Connection {
 			return stream;
 
 		} catch (IOException e) {
-			logger.error("Error performing operation on FTP server (code " + client.getReplyCode() + ")", e);
+			logger.error("Error performing operation on FTP server", e);
 		}
 
 		return null;
