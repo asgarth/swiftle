@@ -7,6 +7,13 @@
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+
+    <!-- fancybox -->
+    <link rel="stylesheet" href="javascripts/fancybox/jquery.fancybox.css?v=2.0.6" type="text/css" media="screen" />
+    <script type="text/javascript" src="javascripts/fancybox/jquery.fancybox.pack.js?v=2.0.6"></script>
     
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
@@ -45,14 +52,30 @@
         
         <p><strong>Screenshots:</strong></p>
         
+        <a class="fancybox" rel="group" href="images/swiftle01.png"><img src="images/swiftle01_small.png" alt="" /></a>
+        <a class="fancybox" rel="group" href="images/swiftle02.png"><img src="images/swiftle02_small.png" alt="" /></a>
+        <!--
         <a href="images/swiftle01.png"><img src="images/swiftle01_small.png" alt="" /></a>
         <a href="images/swiftle02.png"><img src="images/swiftle02_small.png" alt="" /></a>
+        -->
       </section>
       <footer>
         <p><small>This project is maintained by <a href="https://github.com/asgarth">asgarth</a></small></p>
       </footer>
     </div>
     <script src="javascripts/scale.fix.js"></script>
+    
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $(".fancybox").fancybox();
+        
+        $(".fancybox")
+        .attr('rel', 'gallery')
+        .fancybox({
+            padding : 0
+        });
+      });
+    </script>
     
   </body>
 </html>
