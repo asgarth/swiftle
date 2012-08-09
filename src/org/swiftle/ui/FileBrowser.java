@@ -9,6 +9,15 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
@@ -49,8 +58,10 @@ import org.swiftle.ui.util.IconUtils;
 public class FileBrowser extends Composite {
 
 	private final Configuration config = Configuration.getInstance();
-	
+
 	/** widgets */
+	private final FileManager parent;
+	
 	private final ImageCache cache;
 
 	private Text toolBarPath;
@@ -63,8 +74,10 @@ public class FileBrowser extends Composite {
 	/** file entries list */
 	private Map<String, Entry> currentEntryMap = new HashMap<String, Entry>();
 
-	public FileBrowser(final Composite parent) {
+	public FileBrowser(final FileManager parent) {
 		super(parent, SWT.NONE);
+		this.parent = parent;
+		
 		cache = ImageCache.getInstance();
 
 		/** init UI */
@@ -115,6 +128,17 @@ public class FileBrowser extends Composite {
 			selected.add(currentEntryMap.get(selection.getText(0)));
 
 		return selected;
+	}
+	
+	public List<Entry> getEntriesFromName(final List<String> names) {
+		final List<Entry> list = new ArrayList<Entry>(names.size());
+		for (String name : names) {
+			final Entry entry = currentEntryMap.get(name);
+			if (entry != null)
+				list.add(entry);
+		}
+		
+		return list;
 	}
 
 	public void add(final Entry entry) {
@@ -203,7 +227,31 @@ public class FileBrowser extends Composite {
 		table.addControlListener(new TableColumnAdapter(table, 50, 15, 20, 5));
 		tableComposite.setLayout(new FillLayout());
 
+		/** init dnd */
+		final TextTransfer textTransfer = TextTransfer.getInstance();
+
+		final DragSource source = new DragSource(table, DND.DROP_DEFAULT | DND.DROP_MOVE);
+		source.setTransfer(new Transfer[] { textTransfer });
+		source.addDragListener(new DragSourceAdapter() {
+			public void dragSetData(DragSourceEvent event) {
+				if (textTransfer.isSupportedType(event.dataType))
+					event.data = table.getSelection()[0].getText(0);
+			}
+		});
+
+		final DropTarget dt = new DropTarget(table, DND.DROP_DEFAULT | DND.DROP_MOVE);
+		dt.setTransfer(new Transfer[] { textTransfer });
+		dt.addDropListener(new DropTargetAdapter() {
+			public void drop(DropTargetEvent event) {
+				receiveTransfer((String) event.data);
+			}
+		});
+
 		return table;
+	}
+	
+	public void receiveTransfer(final String file) {
+		parent.receiveTransfer(file, this);
 	}
 
 	private ToolBar buildToolBar() {
@@ -325,11 +373,11 @@ public class FileBrowser extends Composite {
 		newConnectionItem.setText("New connection...");
 
 		new MenuItem(menu, SWT.SEPARATOR);
-		
+
 		for (final String serverName : config.getServerMap().keySet()) {
 			final MenuItem recentServerItem = new MenuItem(menu, SWT.PUSH);
 			recentServerItem.setText(serverName);
-			
+
 			recentServerItem.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event e) {
 					final Server server = config.getServerMap().get(recentServerItem.getText());
@@ -340,7 +388,7 @@ public class FileBrowser extends Composite {
 				}
 			});
 		}
-		
+
 		if (config.getServerMap().keySet().size() > 0)
 			new MenuItem(menu, SWT.SEPARATOR);
 
@@ -358,14 +406,14 @@ public class FileBrowser extends Composite {
 
 				final Connection newConnection = ConnectionFactory.build(dialog.getProtocol(), dialog.getHost(), dialog.getPort(), dialog.getUser(), dialog.getPwd());
 				connect(newConnection);
-				
+
 				final Server server = new Server(dialog.getProtocol().name());
 				server.set("hostname", dialog.getHost());
 				if (dialog.getPort() > 0)
 					server.set("port", Integer.toString(dialog.getPort()));
 				server.set("username", dialog.getUser());
 				server.set("password", dialog.getPwd());
-				
+
 				config.addServer(dialog.getUser() + "@" + dialog.getHost(), server);
 			}
 		});

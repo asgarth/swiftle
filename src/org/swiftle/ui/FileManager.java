@@ -1,5 +1,8 @@
 package org.swiftle.ui;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -55,39 +58,78 @@ public class FileManager extends Composite {
 
 		moveLeft.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				startTransfer(right, left);
+				final Entry entry = right.getSelectedEntry();
+				if (entry == null)
+					return;
+
+				transfer(entry, right);
 			}
 		});
 
 		moveRight.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				startTransfer(left, right);
+				final Entry entry = left.getSelectedEntry();
+				if (entry == null)
+					return;
+
+				transfer(entry, left);
 			}
 		});
 	}
-	
+
 	public FileBrowser getLeft() {
 		return left;
 	}
-	
+
 	public FileBrowser getRight() {
 		return right;
 	}
-	
-	private void startTransfer(final FileBrowser orig, final FileBrowser dest) {
-		final Entry source = orig.getSelectedEntry();
-		if (source == null)
-			return;
-		
-		final Entry target;
-		if (source.isFile())
-			target = new FileEntry(source.getName(), dest.getConnection().pwd() + dest.getConnection().getPathSeparator() + source.getName(), source.size());
-		else
-			target = new DirectoryEntry(source.getName(), dest.getConnection().pwd() + dest.getConnection().getPathSeparator() + source.getName());
 
-		final TransferData data = new TransferData(source, target, orig.getConnection(), dest.getConnection());
-		data.addListener(new NewFileListener(dest));
-		TransferManager.getInstance().add(data);
+	public void transfer(final Entry entry, final FileBrowser orig) {
+		final List<Entry> list = new LinkedList<Entry>();
+		list.add(entry);
+
+		transfer(list, orig);
+	}
+
+	public void transfer(final List<Entry> entries, final FileBrowser orig) {
+		final FileBrowser dest = orig.equals(left) ? right : left;
+
+		for (Entry source : entries) {
+			final Entry target;
+			if (source.isFile())
+				target = new FileEntry(source.getName(), dest.getConnection().pwd() + dest.getConnection().getPathSeparator() + source.getName(), source.size());
+			else
+				target = new DirectoryEntry(source.getName(), dest.getConnection().pwd() + dest.getConnection().getPathSeparator() + source.getName());
+
+			final TransferData data = new TransferData(source, target, orig.getConnection(), dest.getConnection());
+			data.addListener(new NewFileListener(dest));
+			TransferManager.getInstance().add(data);
+		}
+	}
+	
+	public void receiveTransfer(final String file, final FileBrowser dest) {
+		final List<String> list = new LinkedList<String>();
+		list.add(file);
+
+		receiveTransfer(list, dest);
+	}
+	
+	public void receiveTransfer(final List<String> list, final FileBrowser dest) {
+		final FileBrowser orig = dest.equals(left) ? right : left;
+
+		
+		for (Entry source : orig.getEntriesFromName(list)) {
+			final Entry target;
+			if (source.isFile())
+				target = new FileEntry(source.getName(), dest.getConnection().pwd() + dest.getConnection().getPathSeparator() + source.getName(), source.size());
+			else
+				target = new DirectoryEntry(source.getName(), dest.getConnection().pwd() + dest.getConnection().getPathSeparator() + source.getName());
+
+			final TransferData data = new TransferData(source, target, orig.getConnection(), dest.getConnection());
+			data.addListener(new NewFileListener(dest));
+			TransferManager.getInstance().add(data);
+		}
 	}
 
 }
