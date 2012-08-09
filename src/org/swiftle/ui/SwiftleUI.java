@@ -150,7 +150,7 @@ public class SwiftleUI extends ApplicationWindow {
 			public void handleEvent(Event e) {
 				final AboutDialog dialog = new AboutDialog(shell, "About " + Constants.SWIFTLE, "./resources/images/about.png", "Version: " + Constants.getVersion());
 				dialog.setTextColor(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
-				dialog.setWebsite("http://code.google.com/p/swiftle");
+				dialog.setWebsite("http://asgarth.github.com/swiftle");
 				dialog.setText("A simple cross-platform file transfer client with support for multiple protocols and direct transfer between romote hosts.");
 				dialog.open();
 			}
